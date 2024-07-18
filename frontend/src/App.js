@@ -1,5 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from 'react-bootstrap/Navbar';
 import Form from 'react-bootstrap/Form';
@@ -15,6 +15,35 @@ function App() {
 	const [title, setTitle] = useState('');
 	const [sources, setSources] = useState([]);
 	const [url, setUrl] = useState('');
+	const [data, setData] = useState({
+		url: null,
+		title: null
+	  })
+	
+	const getData = async( ) => {
+		try{
+			const response = await fetch(`http://localhost:8000/article`)
+			const json = await response.json()
+			console.log(json)
+		} catch (err) {
+			console.error(err)
+		}
+	}
+	
+	const postData = async () => {
+		try{
+			const response = await fetch(`http://localhost:8000/article`, {
+			method: "POST",
+			header: {'Content-Type': 'application/json'},
+			body: JSON.stringify(data)
+			})
+			console.log(response)
+		} catch (err) {
+			console.error(err)
+		}
+	}
+	
+	useEffect(() => getData, [])
 
 	const getSources = async () => {
 		try {
