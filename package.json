@@ -1,0 +1,13 @@
+{
+  "name": "sourcerequest",
+  "version": "1.0.0",
+  "description": "Install node packages",
+  "main": "index.js",
+  "scripts": {
+    "build": "if-env TYPE=server && (cd server && npm install) || (cd frontend && npm install)",
+    "start": "node ./server/server.js",
+    "client": "cd frontend && npm start"
+  },
+  "author": "",
+  "license": "ISC"
+}

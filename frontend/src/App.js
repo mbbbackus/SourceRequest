@@ -15,45 +15,52 @@ function App() {
 	const [title, setTitle] = useState('');
 	const [sources, setSources] = useState([]);
 	const [url, setUrl] = useState('');
-	const [data, setData] = useState({
-		url: null,
-		title: null
-	  })
 	
 	const getData = async( ) => {
 		try{
 			const response = await fetch(`http://localhost:8000/article`)
 			const json = await response.json()
-			console.log(json)
 		} catch (err) {
 			console.error(err)
 		}
 	}
 	
-	const postData = async () => {
+	const postData = async (data) => {
+		console.log(data)
 		try{
 			const response = await fetch(`http://localhost:8000/article`, {
 			method: "POST",
 			header: {'Content-Type': 'application/json'},
 			body: JSON.stringify(data)
 			})
-			console.log(response)
 		} catch (err) {
 			console.error(err)
 		}
 	}
-	
+
 	useEffect(() => getData, [])
+
+	const checkdb = async (url) => {
+		try{
+			const response = await fetch(`http://localhost:8000/url/${encodeURIComponent(url)}`)
+			const json = await response.json()
+		}catch (err){
+			console.error(err)
+		}
+	}
 
 	const getSources = async () => {
 		try {
-			const response = await axios.get(`http://localhost:4000/article/${encodeURIComponent(url)}`);
-			// console.log(response);
-			const data = response?.data;
-			if (!data) return;
-			console.log(data)
-			setSources(data.sources);
-			setTitle(data.title);
+			const urlNode = await checkdb(url)
+			if(!urlNode){
+				const response = await axios.get(`http://localhost:4000/article/${encodeURIComponent(url)}`);
+				const data = response?.data;
+				if (!data) return;
+				const newData = {url: url, title: data.title}
+				postData(newData)
+				setSources(data.sources);
+				setTitle(data.title);
+			}
 		} catch (error) {
 			console.error("Error fetching data:", error);
 			if (error.response) {
@@ -97,16 +104,14 @@ function App() {
 			<h1> {title}</h1>
 			<br></br>
 			{sources.length ? 
-				<Accordion defaultActiveKey="0">
-					{sources.map((source, index) => {
-						return (
-							<Accordion.Item eventKey={index}>
-								<Accordion.Header>{source.sentence}</Accordion.Header>
-								<Accordion.Body><a href={source.url}>{source.url}</a></Accordion.Body>
-							</Accordion.Item>
-						)
-					})}
-				</Accordion>
+				<div>
+					{sources.map((source, index) => (
+						<div key={index}>
+							<h3>{source.sentence}</h3>
+							<a href={source.url}>{source.url}</a>
+						</div>
+					))}
+				</div>
 			: ''}
 		</div>
 	);
