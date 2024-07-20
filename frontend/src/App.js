@@ -8,18 +8,19 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Accordion from 'react-bootstrap/Accordion';
 
-
-
 function App() {
 
 	const [title, setTitle] = useState('');
 	const [sources, setSources] = useState([]);
 	const [url, setUrl] = useState('');
+	const [existingArticles, setExistingArticles] = useState([]);
 	
 	const getData = async( ) => {
 		try{
 			const response = await fetch(`http://localhost:8000/article`)
-			const json = await response.json()
+			const json = await response.json();
+			console.log(json)
+			setExistingArticles(json)
 		} catch (err) {
 			console.error(err)
 		}
@@ -30,7 +31,7 @@ function App() {
 		try{
 			const response = await fetch(`http://localhost:8000/article`, {
 			method: "POST",
-			header: {'Content-Type': 'application/json'},
+			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify(data)
 			})
 		} catch (err) {
@@ -53,7 +54,7 @@ function App() {
 		try {
 			const urlNode = await checkdb(url)
 			if(!urlNode){
-				const response = await axios.get(`http://localhost:4000/article/${encodeURIComponent(url)}`);
+				const response = await axios.get(`http://localhost:8000/article/${encodeURIComponent(url)}`);
 				const data = response?.data;
 				if (!data) return;
 				const newData = {url: url, title: data.title}
@@ -63,15 +64,6 @@ function App() {
 			}
 		} catch (error) {
 			console.error("Error fetching data:", error);
-			if (error.response) {
-			  console.log(error.response.data);
-			  console.log(error.response.status);
-			  console.log(error.response.headers);
-			} else if (error.request) {
-			  console.log(error.request);
-			} else {
-			  console.log('Error', error.message);
-			}
 		}
 
 	}

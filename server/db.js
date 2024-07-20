@@ -1,12 +1,10 @@
-const Pool = require('pg').Pool
-require('dotenv').config()
+import pg from 'pg';
+const {Pool} = pg;
 
-const pool = new Pool({
+export const pool = new Pool({
     user: process.env.USERNAME,
     password: process.env.PASSWORD,
     host: process.env.HOST,
     port: process.env.PORT,
     database: 'sourcetrackerapp'
 })
-
-module.exports = pool
