@@ -1,8 +1,11 @@
 import express from 'express';
-import axios from 'axios'
 import cors from 'cors';
-import { parse } from 'node-html-parser';
-import { pool } from './db.js';
+import {
+    listArticles,
+    getArticle,
+    postArticle
+} from './queries.js';
+import { getSources } from './scrapers.js';
 
 const PORT = 8000
 const app = express()
@@ -13,91 +16,74 @@ app.use(express.urlencoded({ extended: true }));
 
 app.listen(PORT, () => console.log(`listening on port ${PORT}`))
 
-app.get('/article', async (req, res) => {
-    try{
-        const article = await pool.query('SELECT * FROM article')
-        res.json(article.rows)
-    } catch (err) {
-        console.error(err)
-    }
-})
-
+/**
+ * Article GET
+ * Endpoint for retrieving data about a specific article
+ * @param {string} url - Article address we want to retrieve data from 
+ * @returns {object} 
+ *  @key title @value {string} Article title
+ *  @key sources @value {Array} list of objects containing source data
+ *    @key sentence @value {string} sentence in which source was cited
+ *    @key url @value {string} url of source 
+ */
 app.get("/article/:url", async (request, response, next) => {
     try {
+        // Check DB first so we don't scrape articles that have already been scraped
         const url = request.params.url;
-        const sources = await getSources(url, false);
+        
+        // TODO: Currently commented out the parts that connect to the database
+        // so that I can focus on frontend dev
+
+        // const article = await getArticle(url);
+        // if (article.rows.length) {
+        //     response.json(article.rows[0]);
+        //     return;
+        // }
+
+        // Scrape article if this is our first time seeing it
+        const sources = await getSources(url, true);
         response.json(sources);
-      } catch (error) {
+
+        // Add article to database for future reference
+        // await postArticle(url, sources);
+
+    } catch (error) {
         console.error('Error processing request:', error);
         response.status(500).json({ error: 'An error occurred while processing your request' });
-      }
-})
-
-const getSources = async (url, ignoreCycles) => {
-    const sources = [];
-    let title = ''
-    await axios.get(url).then((response) => {
-        const root = parse(response.data);
-        const domainName = (new URL(url)).hostname;
-        const paragraphs = root.querySelectorAll('p');
-        title = root.querySelector('title').text;
-    
-        const links = [];
-        paragraphs.forEach(p => {
-            const paragraph = p.text.trim();
-            const sentences = paragraph.split('. ');
-            const anchors = p.querySelectorAll('a');
-            for (let a of anchors) {
-                let sentence = paragraph;
-                const link_text = a.text?.trim();
-                const link_url = a.getAttribute('href');
-                if (!link_text || !link_url) { // skip blank anchors
-                    continue;
-                }
-                if (!link_url.includes('https://')) { // skip internal routes
-                    continue;
-                }
-                if (ignoreCycles && link_url.includes(domainName)) { // skip links to same site
-                    continue;
-                }
-
-                for (let s of sentences) {
-                    if (s.includes(link_text)) {
-                        sentence = s.trim();
-                    }
-                }
-
-                links.push({
-                    sentence,
-                    url: a.getAttribute('href')
-                })
-            }
-        })
-        for (let link of links) {
-            sources.push(link)
-        }
-    })
-    return {title, sources};
-}
-
-
-app.get('/url/:encodedURI', async (req, res) => {
-    const url = decodeURIComponent(req.params.encodedURI)
-    try{
-        const nodes = await pool.query(`SELECT * FROM article WHERE url = $1`, [url])
-        res.json(nodes.rows)
-    }catch (err){
-        console.error(err)
     }
-})
+});
 
-app.post('/article', (req, res) =>{
-    const {url, title} = req.body
+/**
+ * Article LIST
+ * Endpoint for retrieving a list of all articles in Database
+ * @returns {Array} - all rows of Article table
+ */
+app.get("/articles", async (request, response, next) => {
     try {
-        pool.query(`INSERT INTO article (url, title)
-                    VALUES ($1, $2);
-                    `, [url, title])
+        const url = request.params.url;
+        const articles = await listArticles(url);
+        if (articles.rows.length) {
+            response.json(articles.rows);
+        }
+    } catch (error) {
+        console.error('Could not list articles.', error)
+    }
+});
+
+/**
+ * Article POST
+ * Endpoint for adding an article to the Database
+ * @param {string} url - address of article
+ * @param {string} title - title of article
+ */
+app.post('/article', async (request, response, next) =>{
+    const {url, title} = request.body
+    try {
+        const posted = await postArticle(url, title);
+        if (posted.rows.length) {
+            response.json(articles.rows);
+        }
     } catch (err){
         console.error(err)
     }
-})
+});

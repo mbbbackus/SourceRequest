@@ -52,16 +52,11 @@ function App() {
 
 	const getSources = async () => {
 		try {
-			const urlNode = await checkdb(url)
-			if(!urlNode){
-				const response = await axios.get(`http://localhost:8000/article/${encodeURIComponent(url)}`);
-				const data = response?.data;
-				if (!data) return;
-				const newData = {url: url, title: data.title}
-				postData(newData)
-				setSources(data.sources);
-				setTitle(data.title);
-			}
+			const response = await axios.get(`http://localhost:8000/article/${encodeURIComponent(url)}`);
+			const data = response?.data;
+			if (!data) return;				
+			setSources(data.sources);
+			setTitle(data.title);
 		} catch (error) {
 			console.error("Error fetching data:", error);
 		}
@@ -71,7 +66,7 @@ function App() {
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		getSources();
-	  }
+	}
 
 	return (
 		<div className="App">
@@ -104,7 +99,10 @@ function App() {
 						</div>
 					))}
 				</div>
-			: ''}
+			: 
+				<div>
+					{/* {existingArticles.map((source, ))}	 */}
+				</div>}
 		</div>
 	);
 }

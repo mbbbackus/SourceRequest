@@ -9,6 +9,7 @@ CREATE TABLE article (
 
 CREATE TABLE citation (
     id SERIAL PRIMARY KEY,
+    sentence VARCHAR(2048),
     article SERIAL,
     citation SERIAL
 );
