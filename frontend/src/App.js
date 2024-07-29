@@ -1,4 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './index.css'
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from 'react-bootstrap/Navbar';
@@ -6,49 +7,13 @@ import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Accordion from 'react-bootstrap/Accordion';
+import Diagram from './Diagram.js';
 
 function App() {
 
 	const [title, setTitle] = useState('');
 	const [sources, setSources] = useState([]);
 	const [url, setUrl] = useState('');
-	const [existingArticles, setExistingArticles] = useState([]);
-	
-	const getData = async( ) => {
-		try{
-			const response = await fetch(`http://localhost:8000/article`)
-			const json = await response.json();
-			console.log(json)
-			setExistingArticles(json)
-		} catch (err) {
-			console.error(err)
-		}
-	}
-	
-	const postData = async (data) => {
-		console.log(data)
-		try{
-			const response = await fetch(`http://localhost:8000/article`, {
-			method: "POST",
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify(data)
-			})
-		} catch (err) {
-			console.error(err)
-		}
-	}
-
-	useEffect(() => getData, [])
-
-	const checkdb = async (url) => {
-		try{
-			const response = await fetch(`http://localhost:8000/url/${encodeURIComponent(url)}`)
-			const json = await response.json()
-		}catch (err){
-			console.error(err)
-		}
-	}
 
 	const getSources = async () => {
 		try {
@@ -69,15 +34,15 @@ function App() {
 	}
 
 	return (
-		<div className="App">
-			<Navbar className="bg-body-tertiary justify-content-between">
-				<Form onSubmit={handleSubmit} className="w-100 mx-0">
+		<div className="App" style={{ height: '100%' }}>
+			<Navbar className="bg-body-dark justify-content-between">
+				<Form onSubmit={handleSubmit} className="w-100 mx-0y">
 					<Row className="w-100 mx-0">
 						<Col className="w-100">
 							<Form.Control
 								type="text"
 								placeholder="Search"
-								className="w-100"
+								className="w-100 bg-body-tertiar"
 								value={url}
 								onChange={(e) => setUrl(e.target.value)}
 							/>
@@ -88,21 +53,9 @@ function App() {
 					</Row>
 				</Form>
 			</Navbar>
-			<h1> {title}</h1>
-			<br></br>
-			{sources.length ? 
-				<div>
-					{sources.map((source, index) => (
-						<div key={index}>
-							<h3>{source.sentence}</h3>
-							<a href={source.url}>{source.url}</a>
-						</div>
-					))}
-				</div>
-			: 
-				<div>
-					{/* {existingArticles.map((source, ))}	 */}
-				</div>}
+			<div style={{ height: '100%' }}>
+				<Diagram sources={sources} title={title} url={url}></Diagram>
+			</div>
 		</div>
 	);
 }
