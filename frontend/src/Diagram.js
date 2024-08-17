@@ -73,8 +73,8 @@ function Diagram(props) {
                 <ReactFlow 
 					nodes={nodes}
 					edges={edges}
-					onNodesChange={onNodesChange}
-					onEdgesChange={onEdgesChange}
+					// onNodesChange={onNodesChange} TODO - figure out why claude suggested these
+					// onEdgesChange={onEdgesChange}
 					fitView
 				>
                     <Background />
